@@ -19,6 +19,11 @@ class OnboardingScreen extends StatelessWidget {
                   "assets/onboarding.png",
                   fit: BoxFit.cover,
                 ),
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                  color: Colors.black.withOpacity(0.45),
+                ),
                 Positioned(
                   top: MediaQuery.of(context).size.height * 0.30,
                   left: MediaQuery.of(context).size.width * 0.05,
