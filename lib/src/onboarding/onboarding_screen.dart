@@ -65,7 +65,10 @@ class OnboardingScreen extends StatelessWidget {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 32),
-                        const Divider(),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.4,
+                          child: const Divider(),
+                        ),
                         const SizedBox(height: 12),
                         const GoogleSignInButton(),
                       ],
