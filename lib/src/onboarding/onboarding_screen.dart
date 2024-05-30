@@ -20,13 +20,28 @@ class OnboardingScreen extends StatelessWidget {
                   fit: BoxFit.cover,
                 ),
                 Positioned(
-                  top: MediaQuery.of(context).size.height * 0.55,
+                  top: MediaQuery.of(context).size.height * 0.30,
                   left: MediaQuery.of(context).size.width * 0.05,
                   right: MediaQuery.of(context).size.width * 0.05,
                   child: Center(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        Opacity(
+                          opacity: 0.85,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.dashboard,
+                              size: 96,
+                              color: Colors.indigo,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
                         Text(
                           "T.R.E.L.L.O",
                           style: Theme.of(context)
