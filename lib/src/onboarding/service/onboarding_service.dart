@@ -15,6 +15,10 @@ class OnboardingService {
     required this.auth,
   });
 
+  /// Authenticates the user with Google OAuth.
+  /// TODO: Below
+  /// If the user is new, it will create a new account.
+  /// Else it will sign in the user and return the user data.
   Future<User?> authenticateWithGoogle() async {
     try {
       final user = await googleSignInProvider.signIn();
