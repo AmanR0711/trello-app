@@ -1,3 +1,4 @@
+import 'package:app/src/onboarding/ui/google_sign_in_button.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingScreen extends StatelessWidget {
@@ -51,6 +52,7 @@ class OnboardingScreen extends StatelessWidget {
                         const SizedBox(height: 32),
                         const Divider(),
                         const SizedBox(height: 12),
+                        const GoogleSignInButton(),
                       ],
                     ),
                   ),
