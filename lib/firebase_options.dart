@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     authDomain: 'trello-app-756e6.firebaseapp.com',
     storageBucket: 'trello-app-756e6.appspot.com',
   );
+
 }

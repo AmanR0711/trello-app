@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 
-class GoogleSignInButton extends StatelessWidget {
-  const GoogleSignInButton({super.key});
-  @override
+import '../../bloc/onboarding_cubit.dart';
 
+class GoogleSignInButton extends StatelessWidget {
+  final OnboardingCubit onboardingCubit;
+
+  const GoogleSignInButton({
+    required this.onboardingCubit,
+    super.key,
+  });
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 280,
@@ -11,7 +18,7 @@ class GoogleSignInButton extends StatelessWidget {
         style: ButtonStyle(
           shape: WidgetStateProperty.resolveWith(
             (_) => RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8)
+              borderRadius: BorderRadius.circular(8),
             ),
           ),
           backgroundColor: WidgetStateColor.resolveWith(
@@ -24,7 +31,9 @@ class GoogleSignInButton extends StatelessWidget {
             ),
           ),
         ),
-        onPressed: () {},
+        onPressed: () async {
+          await onboardingCubit.authenticateWithGoogle();
+        },
         child: Center(
           child: Row(
             mainAxisSize: MainAxisSize.min,
