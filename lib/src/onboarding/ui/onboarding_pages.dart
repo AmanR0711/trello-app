@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 
 import '../onboarding_screen.dart';
@@ -17,13 +18,7 @@ class OnboardingPages extends StatelessWidget {
         activeColor: Colors.amber,
       ),
       // TODO: onDone should go to home screen with boards and stuff
-      onDone: () => Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const OnboardingScreen(),
-        ),
-        (route) => false,
-      ),
+      onDone: () => context.pushReplacement('/dashboard'),
       done: const Text(
         "Let's Go!",
         style: TextStyle(color: Colors.white),
