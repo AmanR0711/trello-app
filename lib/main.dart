@@ -1,30 +1,75 @@
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'firebase_options.dart';
 import 'src/onboarding/bloc/onboarding_cubit.dart';
 import 'src/onboarding/onboarding_screen.dart';
 import 'src/onboarding/service/onboarding_service.dart';
+import 'src/onboarding/ui/onboarding_pages.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
+
+  final dioClient = Dio(
+    BaseOptions(
+      baseUrl: 'https://8048-175-100-130-10.ngrok-free.app/api',
+    ),
+  )..interceptors.add(
+      LogInterceptor(
+        responseBody: true,
+        error: true,
+        requestBody: true,
+      ),
+    );
+
+  final router = GoRouter(
+    routes: [
+      GoRoute(
+        path: '/',
+        pageBuilder: (c, s) => MaterialPage(
+          child: BlocProvider(
+            create: (c) => OnboardingCubit(c.read(), c.read()),
+            child: const OnboardingScreen(),
+          ),
+        ),
+      ),
+      // Home page
+      GoRoute(
+        path: '/dashboard',
+        pageBuilder: (c, s) {
+          if (s.uri.queryParameters['newUser'] == "true") {
+            return const MaterialPage(
+              child: OnboardingPages(),
+            );
+          } else {
+            return MaterialPage(
+              child: Container(), //DashboardScreen(),
+            );
+          }
+        },
+      ),
+    ],
+  );
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
+        RepositoryProvider.value(value: dioClient),
         RepositoryProvider<GoogleSignIn>(
           create: (c) => GoogleSignIn(
             scopes: ['email'],
@@ -42,34 +87,14 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ],
-      child: MaterialApp(
+      child: MaterialApp.router(
+        routerConfig: router,
         title: 'Flutter Demo',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          // This is the theme of your application.
-          //
-          // TRY THIS: Try running your application with "flutter run". You'll see
-          // the application has a purple toolbar. Then, without quitting the app,
-          // try changing the seedColor in the colorScheme below to Colors.green
-          // and then invoke "hot reload" (save your changes or press the "hot
-          // reload" button in a Flutter-supported IDE, or press "r" if you used
-          // the command line to start the app).
-          //
-          // Notice that the counter didn't reset back to zero; the application
-          // state is not lost during the reload. To reset the state, use hot
-          // restart instead.
-          //
-          // This works for code too, not just values: Most code changes can be
-          // tested with just a hot reload.
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
           fontFamily: 'AlbertSans',
-        ),
-        home: BlocProvider(
-          create: (c) => OnboardingCubit(
-            c.read(),
-          ),
-          child: const OnboardingScreen(),
         ),
       ),
     );

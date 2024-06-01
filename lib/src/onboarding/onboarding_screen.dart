@@ -1,8 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:go_router/go_router.dart';
 
 import '../common/ui/trello_message_dialog.dart';
 import '../common/ui/loading_dialog.dart';
@@ -46,7 +44,7 @@ class OnboardingScreen extends StatelessWidget {
                   : "Welcome back, ${s.user.username}!",
             ),
           );
-          Navigator.of(c).pushReplacementNamed("/home", arguments: s.user);
+          context.go(!s.isNewUser ? "/dashboard" : "/dashboard?newUser=true");
         }
       },
       child: Scaffold(
