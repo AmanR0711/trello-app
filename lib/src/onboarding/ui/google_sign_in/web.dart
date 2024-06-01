@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 
 // ignore: depend_on_referenced_packages
-import 'package:google_sign_in_web/web_only.dart';
+import 'package:google_sign_in_web/web_only.dart' as web;
 
-class GoogleSignInButton extends StatelessWidget {
-  const GoogleSignInButton({super.key});
+import 'stub.dart';
 
-  @override
-  Widget build(BuildContext context) {
-    return renderButton();
-  }
+Widget buildSignInButton({HandleSignInFn? onPressed}) {
+  return web.renderButton();
 }

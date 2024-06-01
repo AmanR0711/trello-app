@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../../bloc/onboarding_cubit.dart';
+import 'stub.dart';
 
-class GoogleSignInButton extends StatelessWidget {
-  final OnboardingCubit onboardingCubit;
+Widget buildSignInButton({HandleSignInFn? onPressed}) {
+  return _GoogleSignInButton(onPressed: onPressed);
+}
 
-  const GoogleSignInButton({
-    required this.onboardingCubit,
-    super.key,
-  });
+class _GoogleSignInButton extends StatelessWidget {
+  final HandleSignInFn? onPressed;
+
+  const _GoogleSignInButton({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +32,7 @@ class GoogleSignInButton extends StatelessWidget {
             ),
           ),
         ),
-        onPressed: () async {
-          await onboardingCubit.authenticateWithGoogle();
-        },
+        onPressed: onPressed,
         child: Center(
           child: Row(
             mainAxisSize: MainAxisSize.min,

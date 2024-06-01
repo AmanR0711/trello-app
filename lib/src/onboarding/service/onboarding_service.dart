@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 /// Handles authentication with Google OAuth,
@@ -20,19 +19,23 @@ class OnboardingService {
   /// TODO: Below
   /// If the user is new, it will create a new account.
   /// Else it will sign in the user and return the user data.
-  Future<User?> authenticateWithGoogle() async {
+  Future<UserCredential> authenticateWithGoogle() async {
     try {
-      GoogleSignInAccount? user;
-      user = await googleSignInProvider.signIn();
+      final user = await googleSignInProvider.signIn();
       final details = await user!.authentication;
       final creds = GoogleAuthProvider.credential(
         accessToken: details.accessToken,
         idToken: details.idToken,
       );
       final userCreds = await auth.signInWithCredential(creds);
-      return userCreds.user;
+      return userCreds;
     } catch (e) {
+      print("Loss $e");
       throw Exception(e.toString());
     }
   }
+
+  // Web only
+  // Auth state changes
+  Stream<User?> get authStateStream => auth.authStateChanges();
 }

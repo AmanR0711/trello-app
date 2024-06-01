@@ -1,14 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
-// TODO: Conditional imports for web and native, 
-// TODO: for now we will use the web implementation
-import 'ui/google_sign_in/web.dart';
-    // if(dart.library.io) 'ui/google_sign_in/native.dart'
-    // if (dart.library.html) 'ui/google_sign_in/google_sign_in_button_web.dart';
-
-import '../common/ui/loading_dialog.dart';
 import '../common/ui/trello_message_dialog.dart';
+import '../common/ui/loading_dialog.dart';
+
+import 'ui/google_sign_in.dart';
 import 'bloc/onboarding_cubit.dart';
 import 'bloc/onboarding_state.dart';
 
@@ -17,7 +16,9 @@ class OnboardingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cubit = BlocProvider.of<OnboardingCubit>(context);
     return BlocListener<OnboardingCubit, OnboardingState>(
+      bloc: cubit,
       listener: (c, s) {
         if (s is OnboardingLoading) {
           showDialog(
@@ -45,6 +46,7 @@ class OnboardingScreen extends StatelessWidget {
                   : "Welcome back, ${s.user.username}!",
             ),
           );
+          Navigator.of(c).pushReplacementNamed("/home", arguments: s.user);
         }
       },
       child: Scaffold(
@@ -116,9 +118,10 @@ class OnboardingScreen extends StatelessWidget {
                             child: const Divider(),
                           ),
                           const SizedBox(height: 12),
-                          const GoogleSignInButton(
-                            // onboardingCubit:
-                            //     BlocProvider.of<OnboardingCubit>(context),
+                          buildSignInButton(
+                            onPressed: () async {
+                              cubit.authenticateWithGoogle();
+                            },
                           ),
                         ],
                       ),

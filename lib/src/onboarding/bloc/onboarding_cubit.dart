@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../model/trello_user.dart';
@@ -14,12 +15,12 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     try {
       emit(OnboardingLoading());
       final user = await onboardingService.authenticateWithGoogle();
-      if (user != null) {
+      if (user.user != null) {
         // Temporary, will be replaced with server response
         final trelloUser = TrelloUser(
           username: "",
-          email: user.email!,
-          avatarUrl: user.photoURL!,
+          email: user.user!.email!,
+          avatarUrl: user.user!.photoURL!,
         );
         emit(OnboardingSuccess(trelloUser, isNewUser: true));
       } else {
@@ -28,5 +29,10 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     } catch (e) {
       emit(OnboardingError(e.toString()));
     }
+  }
+
+  // Web signin uses `renderButton`
+  Stream<User?> authWithGoogleWeb() async* {
+    yield* onboardingService.authStateStream;
   }
 }
