@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
 
   final dioClient = Dio(
     BaseOptions(
-      baseUrl: 'https://8048-175-100-130-10.ngrok-free.app/api',
+      baseUrl: 'http://localhost:3000/api',
     ),
   )..interceptors.add(
       LogInterceptor(
@@ -51,8 +51,14 @@ class MyApp extends StatelessWidget {
         path: '/dashboard',
         pageBuilder: (c, s) {
           if (s.uri.queryParameters['newUser'] == "true") {
-            return const MaterialPage(
-              child: OnboardingPages(),
+            return MaterialPage(
+              child: BlocProvider(
+                create: (cc) => OnboardingCubit(
+                  cc.read(),
+                  cc.read(),
+                ),
+                child: const OnboardingPages(),
+              ),
             );
           } else {
             return MaterialPage(

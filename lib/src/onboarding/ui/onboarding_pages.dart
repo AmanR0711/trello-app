@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 
-import '../onboarding_screen.dart';
+// import '../onboarding_screen.dart';
+import '../bloc/onboarding_cubit.dart';
+import 'username_selection_dialog.dart';
 
 class OnboardingPages extends StatelessWidget {
   const OnboardingPages({super.key});
@@ -18,7 +21,21 @@ class OnboardingPages extends StatelessWidget {
         activeColor: Colors.amber,
       ),
       // TODO: onDone should go to home screen with boards and stuff
-      onDone: () => context.pushReplacement('/dashboard'),
+      onDone: () async {
+        bool? success = await showDialog(
+          context: context,
+          builder: (_) => BlocProvider(
+            create: (cc) => OnboardingCubit(
+              cc.read(),
+              cc.read(),
+            ),
+            child: const UsernameSelectionDialog(),
+          ),
+        );
+        if (success != null && success) {
+          context.pushReplacement('/dashboard');
+        }
+      },
       done: const Text(
         "Let's Go!",
         style: TextStyle(color: Colors.white),
