@@ -3,16 +3,20 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'firebase_options.dart';
-import 'src/onboarding/bloc/onboarding_cubit.dart';
+import 'src/dashboard/dashboard_screen.dart';
+
 import 'src/onboarding/onboarding_screen.dart';
+import 'src/onboarding/bloc/onboarding_cubit.dart';
 import 'src/onboarding/service/onboarding_service.dart';
 import 'src/onboarding/ui/onboarding_pages.dart';
 
 void main() async {
+  // To store user credentials
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -61,8 +65,8 @@ class MyApp extends StatelessWidget {
               ),
             );
           } else {
-            return MaterialPage(
-              child: Container(), //DashboardScreen(),
+            return const MaterialPage(
+              child: DashboardScreen(),
             );
           }
         },
@@ -75,7 +79,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
+        // HTTP client
         RepositoryProvider.value(value: dioClient),
+        // Firebase
+        RepositoryProvider.value(value: FirebaseAuth.instance),
+        // For storing user credentials
+        RepositoryProvider(
+          create: (_) => const FlutterSecureStorage(),
+        ),
         RepositoryProvider<GoogleSignIn>(
           create: (c) => GoogleSignIn(
             scopes: ['email'],
@@ -83,13 +94,11 @@ class MyApp extends StatelessWidget {
                 "255665597270-0f8kspfi8fcr6bn9dn763044mkoktbgj.apps.googleusercontent.com",
           ),
         ),
-        RepositoryProvider.value(
-          value: FirebaseAuth.instance,
-        ),
         RepositoryProvider<OnboardingService>(
           create: (c) => OnboardingService(
             googleSignInProvider: c.read(),
             auth: c.read(),
+            fss: c.read(),
           ),
         ),
       ],

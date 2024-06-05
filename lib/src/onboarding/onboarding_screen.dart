@@ -51,7 +51,8 @@ class OnboardingScreen extends StatelessWidget {
                       : "Welcome back, ${s.user.username}!",
                 ),
               );
-              context.go(!s.isNewUser ? "/dashboard" : "/dashboard?newUser=true");
+              cubit.saveSession(s.user);
+              context.go(!s.isNewUser ? "/dashboard" : "/dashboard?newUser=true", extra: s.user);
             }
           },
           child: Scaffold(

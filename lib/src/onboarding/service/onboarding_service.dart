@@ -1,5 +1,10 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
+import '../model/trello_user.dart';
 
 /// Handles authentication with Google OAuth,
 /// creating a new T.R.E.L.L.O user account
@@ -9,10 +14,12 @@ import 'package:google_sign_in/google_sign_in.dart';
 class OnboardingService {
   final GoogleSignIn googleSignInProvider;
   final FirebaseAuth auth;
+  final FlutterSecureStorage fss;
 
   OnboardingService({
     required this.googleSignInProvider,
     required this.auth,
+    required this.fss,
   });
 
   /// Authenticates the user with Google OAuth.
@@ -38,4 +45,9 @@ class OnboardingService {
   // Web only
   // Auth state changes
   Stream<User?> get authStateStream => auth.authStateChanges();
+
+  // Save user session
+  Future<void> saveSession(TrelloUser user) async {
+    await fss.write(key: 'user', value: jsonEncode(user.toJson()));
+  }
 }

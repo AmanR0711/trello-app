@@ -7,7 +7,6 @@ import '../model/trello_user.dart';
 import '../service/onboarding_service.dart';
 import 'onboarding_state.dart';
 
-// TODO: Need server to complete this
 class OnboardingCubit extends Cubit<OnboardingState> {
   final OnboardingService onboardingService;
   final Dio dio;
@@ -49,7 +48,7 @@ class OnboardingCubit extends Cubit<OnboardingState> {
         emit(
           OnboardingSuccess(
             trelloUser,
-            isNewUser: trelloUser.createdAt == trelloUser.updatedAt,
+            isNewUser: trelloUser.createdAt!.isAtSameMomentAs(trelloUser.updatedAt!),
           ),
         );
       }
@@ -70,7 +69,7 @@ class OnboardingCubit extends Cubit<OnboardingState> {
       yield* usernameChannel.stream;
       usernameChannel.sink.close(status.goingAway);
     } catch (e, st) {
-      if(e is WebSocketChannelException) {
+      if (e is WebSocketChannelException) {
         print("HIIII ${e.inner.toString()}");
         // emit(OnboardingError(e.message));
       }
@@ -78,5 +77,9 @@ class OnboardingCubit extends Cubit<OnboardingState> {
       print(st);
       emit(OnboardingError(e.toString()));
     }
+  }
+
+  void saveSession(TrelloUser user) async {
+    await onboardingService.saveSession(user);
   }
 }
