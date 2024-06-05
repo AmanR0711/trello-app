@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../common/ui/trello_message_widget.dart';
+import 'ui/trello_board_card.dart';
 import 'ui/view_profile_button.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -71,9 +72,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 shrinkWrap: true,
                 physics: const ClampingScrollPhysics(),
                 itemCount: 5,
-                itemBuilder: (c, i) => Card(
-                  child: Text(i.toString()),
-                ),
+                itemBuilder: (c, i) => const TrelloBoardCard(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: min((width / 300).toInt(), 4) <= 0
                       ? 1
