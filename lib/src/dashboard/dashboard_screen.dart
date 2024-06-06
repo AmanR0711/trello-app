@@ -18,31 +18,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        title: const Text(
-          "T.R.E.L.L.O",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).primaryColor,
+          title: const Text(
+            "T.R.E.L.L.O",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          actions: [
+            // Search button and profile icon
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.search),
+            ),
+            const ViewProfileButton(),
+            const SizedBox(width: 8.0),
+          ],
         ),
-        actions: [
-          // Search button and profile icon
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.search),
-          ),
-          const ViewProfileButton(),
-          const SizedBox(width: 8.0),
-        ],
-      ),
-      body: _buildBody(context),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/board/new'),
-        child: const Icon(Icons.add),
-      )
-    );
+        body: _buildBody(context),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => context.push('/board/new'),
+          child: const Icon(Icons.add),
+        ));
   }
 
   Widget _buildBody(BuildContext context) {
@@ -80,9 +79,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 itemCount: 5,
                 itemBuilder: (c, i) => const TrelloBoardCard(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: min((width / 300).toInt(), 4) <= 0
-                      ? 1
-                      : min((width / 300).toInt(), 4),
+                  crossAxisCount:
+                      _getCrossAxisCount(MediaQuery.of(context).size.width),
                   mainAxisSpacing: 16.0,
                   crossAxisSpacing: 16.0,
                 ),
@@ -92,5 +90,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
     );
+  }
+
+  int _getCrossAxisCount(double width) {
+    if (width <= 480) {
+      return 1;
+    } else if (width <= 800) {
+      return 2;
+    } else if (width <= 1024) {
+      return 3;
+    } else {
+      return 4;
+    }
   }
 }
