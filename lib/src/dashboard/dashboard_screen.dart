@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../common/ui/trello_message_widget.dart';
 import 'ui/trello_board_card.dart';
@@ -18,24 +19,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          backgroundColor: Theme.of(context).primaryColor,
-          title: const Text(
-            "T.R.E.L.L.O",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+        backgroundColor: Theme.of(context).primaryColor,
+        title: const Text(
+          "T.R.E.L.L.O",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
-          actions: [
-            // Search button and profile icon
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.search),
-            ),
-            const ViewProfileButton(),
-            const SizedBox(width: 8.0),
-          ]),
+        ),
+        actions: [
+          // Search button and profile icon
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.search),
+          ),
+          const ViewProfileButton(),
+          const SizedBox(width: 8.0),
+        ],
+      ),
       body: _buildBody(context),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/board/new'),
+        child: const Icon(Icons.add),
+      )
     );
   }
 

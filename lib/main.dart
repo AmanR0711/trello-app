@@ -1,3 +1,4 @@
+import 'package:app/src/common/ui/trello_message_dialog.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -8,6 +9,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'firebase_options.dart';
+import 'src/board/ui/create_board_form.dart';
+import 'src/common/ui/trello_confirm_dialog.dart';
 import 'src/dashboard/dashboard_screen.dart';
 
 import 'src/onboarding/onboarding_screen.dart';
@@ -70,6 +73,22 @@ class MyApp extends StatelessWidget {
             );
           }
         },
+      ),
+      GoRoute(
+        path: '/board/new',
+        onExit: (c, s) async {
+          final res = await showDialog<bool>(
+            context: c,
+            builder: (cc) => const TrelloConfirmDialog(
+              message: "Discard your current changes?",
+            ),
+          );
+          return res ?? false;
+        },
+        pageBuilder: (c, s) => const MaterialPage(
+          child: CreateBoardForm(),
+          fullscreenDialog: true,
+        ),
       ),
     ],
   );
