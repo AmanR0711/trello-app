@@ -15,14 +15,12 @@ class UsernameSelectionDialog extends StatefulWidget {
 
 class _UsernameSelectionDialogState extends State<UsernameSelectionDialog> {
   late TextEditingController _usernameController;
-  late StreamController<bool> _usernameStreamController;
   late GlobalKey<FormState> _formKey;
 
   @override
   void initState() {
     super.initState();
     _usernameController = TextEditingController();
-    _usernameStreamController = StreamController<bool>.broadcast();
     _formKey = GlobalKey<FormState>();
   }
 
@@ -44,14 +42,12 @@ class _UsernameSelectionDialogState extends State<UsernameSelectionDialog> {
                   () => cubit.tryConnectingToServer(),
                 );
               }
-              print("Username chooser Snapshot: $snapshot");
               return Form(
                 key: _formKey,
                 child: TextFormField(
                   enabled: snapshot.connectionState != ConnectionState.waiting,
                   controller: _usernameController,
                   onChanged: (v) {
-                    print("typing: $v ($snapshot)");
                     cubit.verifyUsername(v);
                   },
                   decoration: InputDecoration(

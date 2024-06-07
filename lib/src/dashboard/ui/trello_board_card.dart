@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import '../model/trello_board.dart';
 
 class TrelloBoardCard extends StatefulWidget {
-  const TrelloBoardCard({super.key});
+  final TrelloBoard board;
+
+  const TrelloBoardCard(this.board, {super.key});
 
   @override
   State<TrelloBoardCard> createState() => _TrelloBoardCardState();
@@ -21,12 +26,12 @@ class _TrelloBoardCardState extends State<TrelloBoardCard> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.only(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(8.0),
                 topRight: Radius.circular(8.0),
               ),
-              color: Colors.blue,
+              color: widget.board.bgColor.color,
             ),
             height: 150.0,
           ),
@@ -39,11 +44,12 @@ class _TrelloBoardCardState extends State<TrelloBoardCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "My Board",
-                      style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: Colors.grey[800],
-                          ),
+                      widget.board.name,
+                      style:
+                          Theme.of(context).textTheme.headlineSmall!.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: Colors.grey[800],
+                              ),
                     ),
                     IconButton(
                       onPressed: () {},
@@ -53,7 +59,7 @@ class _TrelloBoardCardState extends State<TrelloBoardCard> {
                 ),
                 const SizedBox(height: 4.0),
                 Text(
-                  "This is a board created by me to manage my tasks.",
+                  widget.board.description,
                   style: Theme.of(context).textTheme.bodySmall!.copyWith(
                         color: Colors.grey[800],
                       ),
@@ -62,7 +68,7 @@ class _TrelloBoardCardState extends State<TrelloBoardCard> {
                 const Divider(indent: 50.0, endIndent: 50.0),
                 const SizedBox(height: 4.0),
                 Text(
-                  "Created at: Jun 4, 2024",
+                  "Created at: ${DateFormat.yMMMMEEEEd().format(widget.board.createdAt)}",
                   style: Theme.of(context).textTheme.labelLarge!.copyWith(
                         color: Colors.grey[500],
                       ),

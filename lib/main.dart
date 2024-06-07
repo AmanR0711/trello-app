@@ -10,11 +10,13 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
 import 'src/board/ui/create_board_form.dart';
 import 'src/common/ui/trello_confirm_dialog.dart';
+import 'src/dashboard/cubit/dashboard_cubit.dart';
 import 'src/dashboard/dashboard_screen.dart';
 
+import 'src/dashboard/service/dashboard_service.dart';
 import 'src/onboarding/bloc/onboarding_state.dart';
-import 'src/onboarding/onboarding_screen.dart';
 import 'src/onboarding/bloc/onboarding_cubit.dart';
+import 'src/onboarding/onboarding_screen.dart';
 import 'src/onboarding/service/onboarding_service.dart';
 import 'src/onboarding/ui/onboarding_pages.dart';
 
@@ -53,6 +55,15 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
+      GoRoute(
+        path: '/onboarding',
+        pageBuilder: (c, s) => MaterialPage(
+          child: BlocProvider(
+            create: (c) => OnboardingCubit(c.read(), c.read()),
+            child: const OnboardingScreen(),
+          ),
+        ),
+      ),
       // Home page
       GoRoute(
         path: '/dashboard',
@@ -68,8 +79,19 @@ class MyApp extends StatelessWidget {
               ),
             );
           } else {
-            return const MaterialPage(
-              child: DashboardScreen(),
+            
+            return MaterialPage(
+              child: MultiBlocProvider(
+                providers: [
+                  BlocProvider(
+                    create: (c) => DashboardCubit(c.read(), c.read()),
+                  ),
+                  BlocProvider(
+                    create: (c) => OnboardingCubit(c.read(), c.read()),
+                  ),
+                ],
+                child: const DashboardScreen(),
+              ),
             );
           }
         },
@@ -121,6 +143,12 @@ class MyApp extends StatelessWidget {
             dio: c.read(),
           ),
         ),
+        RepositoryProvider<DashboardService>(
+          create: (c) => DashboardService(
+            c.read(),
+            c.read(),
+          ),
+        ),
       ],
       child: MaterialApp.router(
         routerConfig: router,
@@ -142,21 +170,21 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = BlocProvider.of<OnboardingCubit>(context);
+    final user = cubit.getSession();
     return BlocListener<OnboardingCubit, OnboardingState>(
-      bloc: cubit..getSession(),
+      bloc: cubit,
       child: const Scaffold(
         body: Center(
           child: CircularProgressIndicator(),
         ),
       ),
-      listener: (context, state) {
-        print(state);
+      listener: (context, state) async {
         if (state is OnboardingLoading) {
           cubit.getSession();
         } else if (state is OnboardingSuccess) {
-          context.go('/dashboard');
-        } else {
-          return context.go('/');
+          context.go('/dashboard', extra: (await user)!);
+        } else if (state is OnboardingError) {
+          context.go('/onboarding');
         }
       },
     );
