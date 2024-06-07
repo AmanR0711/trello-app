@@ -95,9 +95,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _getCrossAxisCount(double width) {
     if (width <= 480) {
       return 1;
-    } else if (width <= 800) {
+    } else if (width > 480 && width <= 800) {
       return 2;
-    } else if (width <= 1024) {
+    } else if (width > 800 && width <= 1024) {
       return 3;
     } else {
       return 4;

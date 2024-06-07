@@ -1,4 +1,3 @@
-import 'package:app/src/common/ui/trello_message_dialog.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -13,6 +12,7 @@ import 'src/board/ui/create_board_form.dart';
 import 'src/common/ui/trello_confirm_dialog.dart';
 import 'src/dashboard/dashboard_screen.dart';
 
+import 'src/onboarding/bloc/onboarding_state.dart';
 import 'src/onboarding/onboarding_screen.dart';
 import 'src/onboarding/bloc/onboarding_cubit.dart';
 import 'src/onboarding/service/onboarding_service.dart';
@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
         pageBuilder: (c, s) => MaterialPage(
           child: BlocProvider(
             create: (c) => OnboardingCubit(c.read(), c.read()),
-            child: const OnboardingScreen(),
+            child: const Home(),
           ),
         ),
       ),
@@ -118,6 +118,7 @@ class MyApp extends StatelessWidget {
             googleSignInProvider: c.read(),
             auth: c.read(),
             fss: c.read(),
+            dio: c.read(),
           ),
         ),
       ],
@@ -131,6 +132,33 @@ class MyApp extends StatelessWidget {
           fontFamily: 'AlbertSans',
         ),
       ),
+    );
+  }
+}
+
+class Home extends StatelessWidget {
+  const Home({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = BlocProvider.of<OnboardingCubit>(context);
+    return BlocListener<OnboardingCubit, OnboardingState>(
+      bloc: cubit..getSession(),
+      child: const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      listener: (context, state) {
+        print(state);
+        if (state is OnboardingLoading) {
+          cubit.getSession();
+        } else if (state is OnboardingSuccess) {
+          context.go('/dashboard');
+        } else {
+          return context.go('/');
+        }
+      },
     );
   }
 }

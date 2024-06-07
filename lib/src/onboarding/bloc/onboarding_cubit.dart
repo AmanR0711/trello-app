@@ -1,7 +1,8 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:web_socket_channel/status.dart' as status;
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import '../model/trello_user.dart';
 import '../service/onboarding_service.dart';
@@ -16,8 +17,21 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     this.dio,
   ) : super(OnboardingLoading());
 
-  final usernameChannel = WebSocketChannel.connect(
-    Uri.parse('ws://192.168.0.103:3000/users'),
+  @override
+  Future<void> close() {
+    usernameStreamController.close();
+    usernameChannel.dispose();
+    return super.close();
+  }
+
+  final usernameStreamController =
+      StreamController<Map<String, dynamic>>.broadcast();
+
+  final usernameChannel = io.io(
+    'http://localhost:3000/users',
+    io.OptionBuilder()
+        .disableAutoConnect()
+        .setTransports(['websocket']).build(),
   );
 
   Future<void> authenticateWithGoogle() async {
@@ -48,7 +62,8 @@ class OnboardingCubit extends Cubit<OnboardingState> {
         emit(
           OnboardingSuccess(
             trelloUser,
-            isNewUser: trelloUser.createdAt!.isAtSameMomentAs(trelloUser.updatedAt!),
+            isNewUser:
+                trelloUser.createdAt!.isAtSameMomentAs(trelloUser.updatedAt!),
           ),
         );
       }
@@ -57,29 +72,68 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     }
   }
 
-  Stream verifyUsername(String username) async* {
+  Future<void> verifyUsername(String username) async {
     try {
-      print("Username: " + username);
-      usernameChannel.sink.add({
-        "username": username,
-      });
-      usernameChannel.stream.listen((event) {
-        print("Event: " + event);
-      });
-      yield* usernameChannel.stream;
-      usernameChannel.sink.close(status.goingAway);
-    } catch (e, st) {
-      if (e is WebSocketChannelException) {
-        print("HIIII ${e.inner.toString()}");
-        // emit(OnboardingError(e.message));
-      }
-      print("YOOOOOOOOOOOOOOO:" + e.toString());
-      print(st);
+      usernameChannel.emit(
+        "username",
+        {
+          "username": username,
+        },
+      );
+      usernameChannel.on(
+        'username',
+        (event) {
+          if (event['error'] == true) {
+            usernameStreamController.addError(event['message']);
+            return;
+          }
+          usernameStreamController.add(event);
+        },
+      );
+    } catch (e) {
+      usernameStreamController.addError(e);
       emit(OnboardingError(e.toString()));
     }
   }
 
   void saveSession(TrelloUser user) async {
     await onboardingService.saveSession(user);
+  }
+
+  void tryConnectingToServer() async {
+    usernameChannel.connect();
+    usernameStreamController.add(
+      {
+        "error": false,
+        "message": "Connected to server!",
+      },
+    );
+  }
+
+  Future<TrelloUser?> getSession() async {
+    final user = await onboardingService.getSession();
+    emit(
+      user != null
+          ? OnboardingSuccess(
+              user,
+              isNewUser: user.updatedAt!.isAtSameMomentAs(user.createdAt!),
+            )
+          : const OnboardingError(
+              "No active session",
+            ),
+    );
+    return user;
+  }
+
+  void updateProfile(
+    TrelloUser user, {
+    String? username,
+    String? avatarUrl,
+  }) async {
+    onboardingService.updateProfile(
+      user,
+      username: username,
+      avatarUrl: avatarUrl,
+    );
   }
 }

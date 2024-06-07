@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -15,11 +16,13 @@ class OnboardingService {
   final GoogleSignIn googleSignInProvider;
   final FirebaseAuth auth;
   final FlutterSecureStorage fss;
+  final Dio dio;
 
   OnboardingService({
     required this.googleSignInProvider,
     required this.auth,
     required this.fss,
+    required this.dio,
   });
 
   /// Authenticates the user with Google OAuth.
@@ -49,5 +52,31 @@ class OnboardingService {
   // Save user session
   Future<void> saveSession(TrelloUser user) async {
     await fss.write(key: 'user', value: jsonEncode(user.toJson()));
+  }
+
+  Future<TrelloUser?> getSession() async {
+    final user = await fss.read(key: 'user');
+    print(user);
+    if (user != null) {
+      return TrelloUser.fromJson(jsonDecode(user));
+    }
+    return null;
+  }
+
+  void updateProfile(
+    TrelloUser user, {
+    String? username,
+    String? avatarUrl,
+  }) async {
+    final res = await dio.patch(
+      '/users/update/${user.email}',
+      data: {
+        'username': username ?? user.username,
+        'avatarUrl': avatarUrl ?? user.avatarUrl,
+      },
+    );
+    final trelloUser = TrelloUser.fromJson(res.data['data']);
+    print(trelloUser.toJson());
+    await saveSession(trelloUser);
   }
 }

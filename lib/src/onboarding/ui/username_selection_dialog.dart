@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -13,11 +15,15 @@ class UsernameSelectionDialog extends StatefulWidget {
 
 class _UsernameSelectionDialogState extends State<UsernameSelectionDialog> {
   late TextEditingController _usernameController;
+  late StreamController<bool> _usernameStreamController;
+  late GlobalKey<FormState> _formKey;
 
   @override
   void initState() {
     super.initState();
     _usernameController = TextEditingController();
+    _usernameStreamController = StreamController<bool>.broadcast();
+    _formKey = GlobalKey<FormState>();
   }
 
   @override
@@ -28,28 +34,42 @@ class _UsernameSelectionDialogState extends State<UsernameSelectionDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          StreamBuilder(
-            stream: cubit.usernameChannel.stream,
+          StreamBuilder<Map<String, dynamic>>(
+            stream: cubit.usernameStreamController.stream,
             builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting &&
+                  !snapshot.hasData) {
+                Future.delayed(
+                  const Duration(milliseconds: 1500),
+                  () => cubit.tryConnectingToServer(),
+                );
+              }
               print("Username chooser Snapshot: $snapshot");
-              return TextFormField(
-                controller: _usernameController,
-                onChanged: (v) => cubit.verifyUsername(v),
-                decoration: InputDecoration(
-                  labelText: "Username",
-                  hintText: "Enter a username",
-                  error: _getErrorWidget(
-                    _usernameController.value.text,
-                    snapshot,
-                  ),
-                  helper: _getHelperWidget(
-                    _usernameController.value.text,
-                    snapshot,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade600,
-                      width: 2.0,
+              return Form(
+                key: _formKey,
+                child: TextFormField(
+                  enabled: snapshot.connectionState != ConnectionState.waiting,
+                  controller: _usernameController,
+                  onChanged: (v) {
+                    print("typing: $v ($snapshot)");
+                    cubit.verifyUsername(v);
+                  },
+                  decoration: InputDecoration(
+                    labelText: "Username",
+                    hintText: "Enter a username",
+                    error: _getErrorWidget(
+                      _usernameController.value.text,
+                      snapshot,
+                    ),
+                    helper: _getHelperWidget(
+                      _usernameController.value.text,
+                      snapshot,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade600,
+                        width: 2.0,
+                      ),
                     ),
                   ),
                 ),
@@ -64,7 +84,21 @@ class _UsernameSelectionDialogState extends State<UsernameSelectionDialog> {
           child: const Text("Cancel"),
         ),
         TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
+          onPressed: () async {
+            if (_formKey.currentState!.validate()) {
+              _formKey.currentState!.save();
+              final user = await cubit.getSession();
+              if (user != null) {
+                cubit.updateProfile(
+                  user,
+                  username: _usernameController.value.text,
+                );
+                Future.delayed(const Duration(milliseconds: 1500), () {
+                  Navigator.of(context).pop(true);
+                });
+              }
+            }
+          },
           child: const Text("Submit"),
         ),
       ],
@@ -84,9 +118,16 @@ class _UsernameSelectionDialogState extends State<UsernameSelectionDialog> {
   }
 
   Widget? _getHelperWidget(String text, AsyncSnapshot snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting &&
+        !snapshot.hasData) {
+      return const Text(
+        "Connecting to server...",
+        style: TextStyle(color: Colors.blueGrey),
+      );
+    }
     if (snapshot.hasData) {
       return Text(
-        snapshot.data.toString(),
+        snapshot.data['message'].toString(),
         style: const TextStyle(
           color: Colors.green,
         ),
