@@ -9,6 +9,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import 'firebase_options.dart';
 import 'src/board/ui/create_board_form.dart';
+import 'src/common/extra/dialog_route.dart';
 import 'src/common/ui/trello_confirm_dialog.dart';
 import 'src/dashboard/cubit/dashboard_cubit.dart';
 import 'src/dashboard/dashboard_screen.dart';
@@ -16,9 +17,11 @@ import 'src/dashboard/dashboard_screen.dart';
 import 'src/dashboard/service/dashboard_service.dart';
 import 'src/onboarding/bloc/onboarding_state.dart';
 import 'src/onboarding/bloc/onboarding_cubit.dart';
+import 'src/onboarding/model/trello_user.dart';
 import 'src/onboarding/onboarding_screen.dart';
 import 'src/onboarding/service/onboarding_service.dart';
 import 'src/onboarding/ui/onboarding_pages.dart';
+import 'src/profile/profile_screen.dart';
 
 void main() async {
   // To store user credentials
@@ -54,6 +57,14 @@ class MyApp extends StatelessWidget {
             child: const Home(),
           ),
         ),
+        routes: [
+          GoRoute(
+            path: 'profile',
+            pageBuilder: (c, s) => DialogPage(
+              builder: (cc) => ProfileScreen(s.extra as TrelloUser),
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: '/onboarding',
@@ -68,29 +79,35 @@ class MyApp extends StatelessWidget {
       GoRoute(
         path: '/dashboard',
         pageBuilder: (c, s) {
-          if (s.uri.queryParameters['newUser'] == "true") {
-            return MaterialPage(
-              child: BlocProvider(
-                create: (cc) => OnboardingCubit(
-                  cc.read(),
-                  cc.read(),
+          if (s.extra != null) {
+            final user = s.extra as TrelloUser;
+            if (s.uri.queryParameters['newUser'] == "true") {
+              return MaterialPage(
+                child: BlocProvider(
+                  create: (cc) => OnboardingCubit(
+                    cc.read(),
+                    cc.read(),
+                  ),
+                  child: const OnboardingPages(),
                 ),
-                child: const OnboardingPages(),
-              ),
-            );
+              );
+            } else {
+              return MaterialPage(
+                child: MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                      create: (c) => DashboardCubit(c.read(), c.read()),
+                    ),
+                  ],
+                  child: DashboardScreen(user),
+                ),
+              );
+            }
           } else {
-            
-            return MaterialPage(
-              child: MultiBlocProvider(
-                providers: [
-                  BlocProvider(
-                    create: (c) => DashboardCubit(c.read(), c.read()),
-                  ),
-                  BlocProvider(
-                    create: (c) => OnboardingCubit(c.read(), c.read()),
-                  ),
-                ],
-                child: const DashboardScreen(),
+            c.go('/');
+            return const MaterialPage(
+              child: Center(
+                child: CircularProgressIndicator(),
               ),
             );
           }

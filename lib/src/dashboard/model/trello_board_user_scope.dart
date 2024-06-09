@@ -1,22 +1,21 @@
-import '../../onboarding/model/trello_user.dart';
 import 'trello_board_scope.dart';
 
 class TrelloBoardUserScope {
-  final TrelloUser user;
+  final String username;
   final TrelloBoardScope boardScope;
 
-  TrelloBoardUserScope(this.user, this.boardScope);
+  TrelloBoardUserScope(this.username, this.boardScope);
 
   factory TrelloBoardUserScope.fromJson(Map<String, dynamic> json) {
     return TrelloBoardUserScope(
-      TrelloUser.fromJson(json['user']),
+      json['username'],
       TrelloBoardScope.values.firstWhere((element) => element.scope == json['scope']),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'user': user.toJson(),
+      'username': username,
       'scope': boardScope.scope,
     };
   }

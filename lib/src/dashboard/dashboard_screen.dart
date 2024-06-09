@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../common/data/themes.dart';
 import '../common/ui/trello_message_widget.dart';
+import '../onboarding/model/trello_user.dart';
 import 'cubit/dashboard_cubit.dart';
 import 'cubit/dashboard_state.dart';
 import 'ui/trello_board_card.dart';
 import 'ui/view_profile_button.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final TrelloUser user;
+
+  const DashboardScreen(this.user, {super.key});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -19,33 +23,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final cubit = BlocProvider.of<DashboardCubit>(context);
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        title: const Text(
-          "T.R.E.L.L.O",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+    return Theme(
+      data: AppThemes[widget.user.theme]!,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).primaryColor,
+          title: const Text(
+            "T.R.E.L.L.O",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          actions: [
+            // Search button and profile icon
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.search),
+            ),
+            ViewProfileButton(widget.user),
+            const SizedBox(width: 8.0),
+          ],
         ),
-        actions: [
-          // Search button and profile icon
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.search),
-          ),
-          const ViewProfileButton(),
-          const SizedBox(width: 8.0),
-        ],
-      ),
-      body: BlocBuilder<DashboardCubit, DashboardState>(
-        bloc: cubit,
-        builder: (c, s) => _buildBody(cubit, c, s),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/board/new'),
-        child: const Icon(Icons.add),
+        body: BlocBuilder<DashboardCubit, DashboardState>(
+          bloc: cubit,
+          builder: (c, s) => _buildBody(cubit, c, s),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => context.push('/board/new'),
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }
@@ -105,7 +112,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: GridView.builder(
                     shrinkWrap: true,
                     physics: const ClampingScrollPhysics(),
-                    itemCount: 5,
+                    itemCount: state.boards.length,
                     itemBuilder: (c, i) => TrelloBoardCard(state.boards[i]),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: _getCrossAxisCount(
