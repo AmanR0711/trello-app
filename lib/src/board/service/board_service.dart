@@ -30,4 +30,12 @@ class BoardService {
       throw Exception(e.response?.data['message']);
     }
   }
+
+  Future<void> deleteBoard(String boardId) async {
+    try {
+      await dio.delete('/boards/$boardId');
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message']);
+    }
+  }
 }

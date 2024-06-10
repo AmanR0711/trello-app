@@ -9,12 +9,10 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import 'firebase_options.dart';
 import 'src/board/board_screen.dart';
-import 'src/board/cubit/board_cubit.dart';
 import 'src/board/service/board_service.dart';
 import 'src/board/ui/create_board_form.dart';
 import 'src/common/data/themes.dart';
 import 'src/common/extra/dialog_route.dart';
-import 'src/common/ui/trello_confirm_dialog.dart';
 import 'src/dashboard/cubit/dashboard_cubit.dart';
 import 'src/dashboard/dashboard_screen.dart';
 
@@ -173,7 +171,10 @@ class MyApp extends StatelessWidget {
             path: 'new',
             pageBuilder: (c, s) => MaterialPage(
               child: BlocProvider(
-                create: (cc) => BoardCubit(cc.read()),
+                create: (cc) => DashboardCubit(
+                  cc.read(),
+                  cc.read(),
+                ),
                 child: const CreateBoardForm(),
               ),
               fullscreenDialog: true,

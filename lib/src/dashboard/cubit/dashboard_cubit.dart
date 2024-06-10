@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../onboarding/service/onboarding_service.dart';
+import '../model/trello_board_bg_color.dart';
 import '../service/dashboard_service.dart';
 import 'dashboard_state.dart';
 
@@ -19,6 +20,30 @@ class DashboardCubit extends Cubit<DashboardState> {
       final user = await onboardingService.getSession();
       final boards = await dashboardService.getBoards();
       emit(DashboardLoaded(user!, boards));
+    } catch (e) {
+      emit(DashboardError(e.toString()));
+    }
+  }
+
+  Future<void> createBoard(
+    String name,
+    String description,
+    TrelloBoardBgColor color,
+  ) async {
+    try {
+      emit(DashboardLoading());
+      await dashboardService.createBoard(name, description, color);
+      getBoards();
+    } catch (e) {
+      emit(DashboardError(e.toString()));
+    }
+  }
+
+  Future<void> deleteBoard(String boardId) async {
+    try {
+      emit(DashboardLoading());
+      await dashboardService.deleteBoard(boardId);
+      getBoards();
     } catch (e) {
       emit(DashboardError(e.toString()));
     }
