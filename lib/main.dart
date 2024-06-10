@@ -9,7 +9,10 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import 'firebase_options.dart';
 import 'src/board/board_screen.dart';
+import 'src/board/cubit/board_cubit.dart';
+import 'src/board/service/board_service.dart';
 import 'src/board/ui/create_board_form.dart';
+import 'src/common/data/themes.dart';
 import 'src/common/extra/dialog_route.dart';
 import 'src/common/ui/trello_confirm_dialog.dart';
 import 'src/dashboard/cubit/dashboard_cubit.dart';
@@ -18,6 +21,7 @@ import 'src/dashboard/dashboard_screen.dart';
 import 'src/dashboard/service/dashboard_service.dart';
 import 'src/onboarding/bloc/onboarding_state.dart';
 import 'src/onboarding/bloc/onboarding_cubit.dart';
+import 'src/onboarding/model/theme_type.dart';
 import 'src/onboarding/model/trello_user.dart';
 import 'src/onboarding/onboarding_screen.dart';
 import 'src/onboarding/service/onboarding_service.dart';
@@ -27,14 +31,10 @@ import 'src/profile/profile_screen.dart';
 void main() async {
   // To store user credentials
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  MyApp({super.key});
 
   final dioClient = Dio(
     BaseOptions(
@@ -47,6 +47,52 @@ class MyApp extends StatelessWidget {
         requestBody: true,
       ),
     );
+  runApp(
+    MultiRepositoryProvider(
+      providers: [
+        // HTTP client
+        RepositoryProvider.value(value: dioClient),
+        // Firebase
+        RepositoryProvider.value(value: FirebaseAuth.instance),
+        // For storing user credentials
+        RepositoryProvider(
+          create: (_) => const FlutterSecureStorage(),
+        ),
+        RepositoryProvider<GoogleSignIn>(
+          create: (c) => GoogleSignIn(
+            scopes: ['email'],
+            clientId:
+                "255665597270-0f8kspfi8fcr6bn9dn763044mkoktbgj.apps.googleusercontent.com",
+          ),
+        ),
+        RepositoryProvider<OnboardingService>(
+          create: (c) => OnboardingService(
+            googleSignInProvider: c.read(),
+            auth: c.read(),
+            fss: c.read(),
+            dio: c.read(),
+          ),
+        ),
+        RepositoryProvider<DashboardService>(
+          create: (c) => DashboardService(
+            c.read(),
+            c.read(),
+          ),
+        ),
+        RepositoryProvider<BoardService>(
+          create: (c) => BoardService(
+            c.read(),
+            c.read(),
+          ),
+        ),
+      ],
+      child: MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  MyApp({super.key});
 
   final router = GoRouter(
     routes: [
@@ -117,8 +163,7 @@ class MyApp extends StatelessWidget {
       GoRoute(
         path: '/board',
         builder: (context, state) {
-          if(state.fullPath == '/board')
-          {
+          if (state.fullPath == '/board') {
             context.go('/');
           }
           return Container();
@@ -126,19 +171,13 @@ class MyApp extends StatelessWidget {
         routes: [
           GoRoute(
             path: 'new',
-            pageBuilder: (c, s) => const MaterialPage(
-              child: CreateBoardForm(),
+            pageBuilder: (c, s) => MaterialPage(
+              child: BlocProvider(
+                create: (cc) => BoardCubit(cc.read()),
+                child: const CreateBoardForm(),
+              ),
               fullscreenDialog: true,
             ),
-            onExit: (c, s) async {
-              final res = await showDialog<bool>(
-                context: c,
-                builder: (cc) => const TrelloConfirmDialog(
-                  message: "Discard your current changes?",
-                ),
-              );
-              return res ?? false;
-            },
           ),
           GoRoute(
             path: ':boardId',
@@ -168,48 +207,21 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MultiRepositoryProvider(
-      providers: [
-        // HTTP client
-        RepositoryProvider.value(value: dioClient),
-        // Firebase
-        RepositoryProvider.value(value: FirebaseAuth.instance),
-        // For storing user credentials
-        RepositoryProvider(
-          create: (_) => const FlutterSecureStorage(),
-        ),
-        RepositoryProvider<GoogleSignIn>(
-          create: (c) => GoogleSignIn(
-            scopes: ['email'],
-            clientId:
-                "255665597270-0f8kspfi8fcr6bn9dn763044mkoktbgj.apps.googleusercontent.com",
-          ),
-        ),
-        RepositoryProvider<OnboardingService>(
-          create: (c) => OnboardingService(
-            googleSignInProvider: c.read(),
-            auth: c.read(),
-            fss: c.read(),
-            dio: c.read(),
-          ),
-        ),
-        RepositoryProvider<DashboardService>(
-          create: (c) => DashboardService(
-            c.read(),
-            c.read(),
-          ),
-        ),
-      ],
-      child: MaterialApp.router(
-        routerConfig: router,
-        title: 'Flutter Demo',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-          useMaterial3: true,
-          fontFamily: 'AlbertSans',
-        ),
-      ),
+    return FutureBuilder(
+      future: OnboardingCubit(
+        context.read(),
+        context.read(),
+      ).getSession(),
+      builder: (context, snapshot) {
+        return MaterialApp.router(
+          routerConfig: router,
+          title: 'Flutter Demo',
+          debugShowCheckedModeBanner: false,
+          theme: snapshot.data == null
+              ? AppThemes[ThemeType.light]
+              : AppThemes[snapshot.data!.theme],
+        );
+      },
     );
   }
 }
@@ -220,22 +232,26 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = BlocProvider.of<OnboardingCubit>(context);
-    final user = cubit.getSession();
-    return BlocListener<OnboardingCubit, OnboardingState>(
-      bloc: cubit,
-      child: const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      ),
-      listener: (context, state) async {
-        if (state is OnboardingLoading) {
-          cubit.getSession();
-        } else if (state is OnboardingSuccess) {
-          context.go('/dashboard', extra: (await user)!);
-        } else if (state is OnboardingError) {
-          context.go('/onboarding');
-        }
+    return FutureBuilder(
+      future: cubit.getSession(),
+      builder: (context, snapshot) {
+        return BlocListener<OnboardingCubit, OnboardingState>(
+          bloc: cubit,
+          child: const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          listener: (context, state) async {
+            if (state is OnboardingLoading) {
+              cubit.getSession();
+            } else if (state is OnboardingSuccess) {
+              context.go('/dashboard', extra: state.user);
+            } else if (state is OnboardingError) {
+              context.go('/onboarding');
+            }
+          },
+        );
       },
     );
   }

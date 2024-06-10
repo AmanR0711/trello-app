@@ -68,6 +68,7 @@ class OnboardingCubit extends Cubit<OnboardingState> {
         );
       }
     } catch (e) {
+      print("error onboarding : $e");
       emit(OnboardingError(e.toString()));
     }
   }

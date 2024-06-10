@@ -56,7 +56,6 @@ class OnboardingService {
 
   Future<TrelloUser?> getSession() async {
     final user = await fss.read(key: 'user');
-    print(user);
     if (user != null) {
       return TrelloUser.fromJson(jsonDecode(user));
     }
@@ -76,7 +75,6 @@ class OnboardingService {
       },
     );
     final trelloUser = TrelloUser.fromJson(res.data['data']);
-    print(trelloUser.toJson());
     await saveSession(trelloUser);
   }
 }

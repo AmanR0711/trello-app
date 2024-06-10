@@ -49,9 +49,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           bloc: cubit,
           builder: (c, s) => _buildBody(cubit, c, s),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => context.push('/board/new'),
-          child: const Icon(Icons.add),
+        floatingActionButton: Theme(
+          data: AppThemes[widget.user.theme]!,
+          child: FloatingActionButton(
+            onPressed: () => context.push('/board/new'),
+            child: const Icon(Icons.add),
+          ),
         ),
       ),
     );
