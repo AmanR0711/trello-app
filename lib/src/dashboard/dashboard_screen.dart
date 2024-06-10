@@ -4,10 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../common/data/themes.dart';
 import '../common/ui/trello_message_widget.dart';
+import '../onboarding/model/theme_type.dart';
 import '../onboarding/model/trello_user.dart';
 import 'cubit/dashboard_cubit.dart';
 import 'cubit/dashboard_state.dart';
-import 'ui/trello_board_card.dart';
+import '../board/ui/trello_board_card.dart';
 import 'ui/view_profile_button.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -27,7 +28,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       data: AppThemes[widget.user.theme]!,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Theme.of(context).primaryColor,
           title: const Text(
             "T.R.E.L.L.O",
             style: TextStyle(
@@ -103,7 +103,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 "Your Boards",
                 style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
+                      color: widget.user.theme == ThemeType.dark
+                          ? Colors.grey[200]
+                          : Colors.grey[800],
                     ),
               ),
               Padding(
@@ -113,7 +115,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     shrinkWrap: true,
                     physics: const ClampingScrollPhysics(),
                     itemCount: state.boards.length,
-                    itemBuilder: (c, i) => TrelloBoardCard(state.boards[i]),
+                    itemBuilder: (c, i) => TrelloBoardCard(
+                      state.boards[i],
+                      state.boards[i].creator.username == widget.user.username,
+                    ),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: _getCrossAxisCount(
                         MediaQuery.of(context).size.width,

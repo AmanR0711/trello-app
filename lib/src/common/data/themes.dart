@@ -15,6 +15,9 @@ final AppThemes = <ThemeType, ThemeData>{
       primary: Colors.red,
       secondary: Colors.amber,
     ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: Colors.amber,
+    ),
   ),
   ThemeType.dark: ThemeData.dark().copyWith(
     appBarTheme: const AppBarTheme(
@@ -26,6 +29,9 @@ final AppThemes = <ThemeType, ThemeData>{
     colorScheme: const ColorScheme.light(
       primary: Colors.red,
       secondary: Colors.amber,
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: Colors.amber,
     ),
   ),
 };

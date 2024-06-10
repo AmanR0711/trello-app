@@ -33,7 +33,7 @@ class OnboardingPages extends StatelessWidget {
           ),
         );
         if (success != null && success) {
-          context.pushReplacement('/dashboard');
+          context.pushReplacement('/');
         }
       },
       done: const Text(

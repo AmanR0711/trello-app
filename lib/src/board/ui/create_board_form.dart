@@ -20,7 +20,6 @@ class _CreateBoardFormState extends State<CreateBoardForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
         title: const Text("Create a new board"),
       ),
       body: Column(
@@ -71,9 +70,6 @@ class _CreateBoardFormState extends State<CreateBoardForm> {
             child: ElevatedButton.icon(
               icon: const Icon(Icons.check_box, color: Colors.white,),
               style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all<Color>(
-                  Theme.of(context).primaryColor,
-                ),
                 shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),

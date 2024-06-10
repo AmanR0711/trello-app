@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'firebase_options.dart';
+import 'src/board/board_screen.dart';
 import 'src/board/ui/create_board_form.dart';
 import 'src/common/extra/dialog_route.dart';
 import 'src/common/ui/trello_confirm_dialog.dart';
@@ -114,20 +115,52 @@ class MyApp extends StatelessWidget {
         },
       ),
       GoRoute(
-        path: '/board/new',
-        onExit: (c, s) async {
-          final res = await showDialog<bool>(
-            context: c,
-            builder: (cc) => const TrelloConfirmDialog(
-              message: "Discard your current changes?",
-            ),
-          );
-          return res ?? false;
+        path: '/board',
+        builder: (context, state) {
+          if(state.fullPath == '/board')
+          {
+            context.go('/');
+          }
+          return Container();
         },
-        pageBuilder: (c, s) => const MaterialPage(
-          child: CreateBoardForm(),
-          fullscreenDialog: true,
-        ),
+        routes: [
+          GoRoute(
+            path: 'new',
+            pageBuilder: (c, s) => const MaterialPage(
+              child: CreateBoardForm(),
+              fullscreenDialog: true,
+            ),
+            onExit: (c, s) async {
+              final res = await showDialog<bool>(
+                context: c,
+                builder: (cc) => const TrelloConfirmDialog(
+                  message: "Discard your current changes?",
+                ),
+              );
+              return res ?? false;
+            },
+          ),
+          GoRoute(
+            path: ':boardId',
+            pageBuilder: (c, s) {
+              final boardId = s.pathParameters['boardId'];
+              if (boardId == null) {
+                c.go('/');
+                return const MaterialPage(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+              return MaterialPage(
+                child: BlocProvider(
+                  create: (cc) => DashboardCubit(cc.read(), cc.read()),
+                  child: BoardScreen(boardId),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     ],
   );
