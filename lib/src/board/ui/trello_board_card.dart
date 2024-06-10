@@ -35,7 +35,9 @@ class _TrelloBoardCardState extends State<TrelloBoardCard> {
         }
       },
       child: InkWell(
-        onTap: () => context.push('/board/${widget.board.id}'),
+        onTap: () {
+          context.push('/board/${widget.board.id}');
+        },
         child: Card(
           shadowColor: Colors.black,
           elevation: 12.0,

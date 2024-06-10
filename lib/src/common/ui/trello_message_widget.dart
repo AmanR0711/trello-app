@@ -24,7 +24,9 @@ class TrelloMessageWidget extends StatelessWidget {
             title,
             style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: Colors.grey[800],
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.grey[800]
+                      : Colors.grey[200],
                 ),
             textAlign: TextAlign.center,
           ),
@@ -32,7 +34,9 @@ class TrelloMessageWidget extends StatelessWidget {
           Text(
             message,
             style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                  color: Colors.grey[800],
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.grey[800]
+                      : Colors.grey[200],
                 ),
             textAlign: TextAlign.center,
           ),

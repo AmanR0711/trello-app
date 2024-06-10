@@ -9,7 +9,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import 'firebase_options.dart';
 import 'src/board/board_screen.dart';
-import 'src/board/service/board_service.dart';
 import 'src/board/ui/create_board_form.dart';
 import 'src/common/data/themes.dart';
 import 'src/common/extra/dialog_route.dart';
@@ -73,12 +72,6 @@ void main() async {
         ),
         RepositoryProvider<DashboardService>(
           create: (c) => DashboardService(
-            c.read(),
-            c.read(),
-          ),
-        ),
-        RepositoryProvider<BoardService>(
-          create: (c) => BoardService(
             c.read(),
             c.read(),
           ),
@@ -149,7 +142,6 @@ class MyApp extends StatelessWidget {
               );
             }
           } else {
-            c.go('/');
             return const MaterialPage(
               child: Center(
                 child: CircularProgressIndicator(),
@@ -160,12 +152,7 @@ class MyApp extends StatelessWidget {
       ),
       GoRoute(
         path: '/board',
-        builder: (context, state) {
-          if (state.fullPath == '/board') {
-            context.go('/');
-          }
-          return Container();
-        },
+        builder: (_, __) => Container(),
         routes: [
           GoRoute(
             path: 'new',
@@ -184,18 +171,10 @@ class MyApp extends StatelessWidget {
             path: ':boardId',
             pageBuilder: (c, s) {
               final boardId = s.pathParameters['boardId'];
-              if (boardId == null) {
-                c.go('/');
-                return const MaterialPage(
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
               return MaterialPage(
                 child: BlocProvider(
                   create: (cc) => DashboardCubit(cc.read(), cc.read()),
-                  child: BoardScreen(boardId),
+                  child: BoardScreen(boardId!),
                 ),
               );
             },
@@ -203,6 +182,14 @@ class MyApp extends StatelessWidget {
         ],
       ),
     ],
+    redirect: (c, s) {
+      if (s.fullPath == '/board') {
+        return '/';
+      } else if (s.fullPath == '/dashboard' && s.extra == null) {
+        return '/onboarding';
+      }
+      return null;
+    },
   );
 
   // This widget is the root of your application.

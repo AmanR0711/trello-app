@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../onboarding/service/onboarding_service.dart';
+import '../model/trello_board.dart';
 import '../model/trello_board_bg_color.dart';
 import '../service/dashboard_service.dart';
 import 'dashboard_state.dart';
@@ -46,6 +47,17 @@ class DashboardCubit extends Cubit<DashboardState> {
       getBoards();
     } catch (e) {
       emit(DashboardError(e.toString()));
+    }
+  }
+
+  Future<TrelloBoard?> getBoard(String boardId) async {
+    try {
+      final board = await dashboardService.getBoard(boardId);
+      return board;
+    } catch (e, st) {
+      print("cubit getBoard:" + e.toString());
+      print(st);
+      return null;
     }
   }
 }

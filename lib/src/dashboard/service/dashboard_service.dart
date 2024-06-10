@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 
+import '../../board/model/trello_board_list.dart';
+import '../../board/model/trello_board_task.dart';
 import '../../onboarding/service/onboarding_service.dart';
 import '../model/trello_board.dart';
 import '../model/trello_board_bg_color.dart';
@@ -12,19 +14,27 @@ class DashboardService {
 
   // Get all user boards
   Future<List<TrelloBoard>> getBoards() async {
-    final user = await onboardingService.getSession();
-    final res = await dio.get(
-      '/boards',
-      queryParameters: {"username": user!.username},
-    );
-    final List<TrelloBoard> boards = [];
-    for (final board in res.data) {
-      boards.add(TrelloBoard.fromJson(board));
+    try {
+      final user = await onboardingService.getSession();
+      final res = await dio.get(
+        '/boards',
+        queryParameters: {"username": user!.username},
+      );
+      final List<TrelloBoard> boards = [];
+      for (final board in res.data) {
+        board['lists'] = [];
+        board['tasks'] = [];
+        boards.add(TrelloBoard.fromJson(board));
+      }
+      return boards;
+    } catch (e, st) {
+      print("getBoards: $e");
+      print(st);
+      return [];
     }
-    return boards;
   }
 
-    Future<void> createBoard(
+  Future<void> createBoard(
     String name,
     String description,
     TrelloBoardBgColor color,
@@ -40,7 +50,6 @@ class DashboardService {
           'username': user!.username,
         },
       );
-
     } on DioException catch (e) {
       throw Exception(e.response?.data['message']);
     }
@@ -51,6 +60,42 @@ class DashboardService {
       await dio.delete('/boards/$boardId');
     } on DioException catch (e) {
       throw Exception(e.response?.data['message']);
+    }
+  }
+
+  Future<TrelloBoard?> getBoard(String boardId) async {
+    try {
+      final res = await dio.get('/boards/$boardId');
+      if (res.data['message'] != null) {
+        return null;
+      }
+      res.data['lists'] = [];
+      res.data['tasks'] = [];
+      final listRes = await dio.get('/lists/$boardId');
+      List<TrelloBoardList> lists = [];
+      List<TrelloBoardTask> tasks = [];
+      for (final list in listRes.data) {
+        list['tasks'] = [];
+        list['scopes'] = [];
+        lists.add(TrelloBoardList.fromJson(list));
+        final task = await dio.get(
+          '/tasks/$boardId?listId=${list['id']}',
+        );
+        task.data['listId'] = list['id'];
+        tasks.add(TrelloBoardTask.fromJson(task.data));
+      }
+      final board = TrelloBoard.fromJson(res.data);
+      board.lists.addAll(lists);
+      for (final list in board.lists) {
+        final listTasks =
+            tasks.where((task) => task.listId == list.id).toList();
+        print("listTasks: $listTasks");
+        list.tasks.addAll(listTasks);
+      }
+      board.lists.addAll(lists);
+      return board;
+    } catch (e) {
+      throw Exception(e.toString());
     }
   }
 }
