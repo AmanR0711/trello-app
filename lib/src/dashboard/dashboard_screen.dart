@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../common/data/themes.dart';
 import '../common/ui/trello_message_widget.dart';
+import '../onboarding/bloc/onboarding_cubit.dart';
 import '../onboarding/model/theme_type.dart';
 import '../onboarding/model/trello_user.dart';
 import 'cubit/dashboard_cubit.dart';
@@ -24,6 +25,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final cubit = BlocProvider.of<DashboardCubit>(context);
+    final onboardingCubit = BlocProvider.of<OnboardingCubit>(context);
     return Theme(
       data: AppThemes[widget.user.theme]!,
       child: Scaffold(
@@ -41,7 +43,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onPressed: () {},
               icon: const Icon(Icons.search),
             ),
-            ViewProfileButton(widget.user),
+            BlocProvider(
+              create: (_) => onboardingCubit,
+              child: ViewProfileButton(widget.user),
+            ),
             const SizedBox(width: 8.0),
           ],
         ),

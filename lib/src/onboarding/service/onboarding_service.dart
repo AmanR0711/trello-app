@@ -50,8 +50,8 @@ class OnboardingService {
   Stream<User?> get authStateStream => auth.authStateChanges();
 
   // Save user session
-  Future<void> saveSession(TrelloUser user) async {
-    await fss.write(key: 'user', value: jsonEncode(user.toJson()));
+  Future<void> saveSession(TrelloUser? user) async {
+    await fss.write(key: 'user', value: user == null ? null : jsonEncode(user.toJson()));
   }
 
   Future<TrelloUser?> getSession() async {

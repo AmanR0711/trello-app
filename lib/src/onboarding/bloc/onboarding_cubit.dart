@@ -97,7 +97,7 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     }
   }
 
-  void saveSession(TrelloUser user) async {
+  void saveSession(TrelloUser? user) async {
     await onboardingService.saveSession(user);
   }
 
@@ -136,5 +136,9 @@ class OnboardingCubit extends Cubit<OnboardingState> {
       username: username,
       avatarUrl: avatarUrl,
     );
+  }
+
+  void signOut() async {
+    onboardingService.saveSession(null);
   }
 }

@@ -23,7 +23,9 @@ import 'src/onboarding/model/trello_user.dart';
 import 'src/onboarding/onboarding_screen.dart';
 import 'src/onboarding/service/onboarding_service.dart';
 import 'src/onboarding/ui/onboarding_pages.dart';
+import 'src/profile/cubit/profile_cubit.dart';
 import 'src/profile/profile_screen.dart';
+import 'src/profile/service/profile_service.dart';
 
 void main() async {
   // To store user credentials
@@ -76,6 +78,12 @@ void main() async {
             c.read(),
           ),
         ),
+        RepositoryProvider(
+          create: (c) => ProfileService(
+            c.read(),
+            c.read(),
+          ),
+        ),
       ],
       child: MyApp(),
     ),
@@ -98,8 +106,18 @@ class MyApp extends StatelessWidget {
         routes: [
           GoRoute(
             path: 'profile',
-            pageBuilder: (c, s) => DialogPage(
-              builder: (cc) => ProfileScreen(s.extra as TrelloUser),
+            pageBuilder: (_, s) => DialogPage(
+              builder: (__) => MultiBlocProvider(
+                providers: [
+                  BlocProvider(
+                    create: (c) => ProfileCubit(c.read()),
+                  ),
+                  BlocProvider(
+                    create: (c) => OnboardingCubit(c.read(), c.read()),
+                  ),
+                ],
+                child: const ProfileScreen(),
+              ),
             ),
           ),
         ],
@@ -135,6 +153,9 @@ class MyApp extends StatelessWidget {
                   providers: [
                     BlocProvider(
                       create: (c) => DashboardCubit(c.read(), c.read()),
+                    ),
+                    BlocProvider(
+                      create: (c) => OnboardingCubit(c.read(), c.read()),
                     ),
                   ],
                   child: DashboardScreen(user),
@@ -195,19 +216,16 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: OnboardingCubit(
-        context.read(),
-        context.read(),
-      ).getSession(),
-      builder: (context, snapshot) {
+    return BlocBuilder<OnboardingCubit, OnboardingState>(
+      bloc: OnboardingCubit(context.read(), context.read()),
+      builder: (context, state) {
         return MaterialApp.router(
           routerConfig: router,
           title: 'Flutter Demo',
           debugShowCheckedModeBanner: false,
-          theme: snapshot.data == null
-              ? AppThemes[ThemeType.light]
-              : AppThemes[snapshot.data!.theme],
+          theme: state is OnboardingSuccess
+              ? AppThemes[(state.user.theme)]
+              : ThemeData.light(),
         );
       },
     );

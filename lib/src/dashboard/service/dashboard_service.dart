@@ -16,6 +16,10 @@ class DashboardService {
   Future<List<TrelloBoard>> getBoards() async {
     try {
       final user = await onboardingService.getSession();
+      if(user == null)
+      {
+        return [];
+      }
       final res = await dio.get(
         '/boards',
         queryParameters: {"username": user!.username},
