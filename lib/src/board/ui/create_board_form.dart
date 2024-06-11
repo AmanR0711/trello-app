@@ -182,7 +182,9 @@ class _CreateBoardFormState extends State<CreateBoardForm> {
                           title: Text(
                             _getBgColorName(bgColor),
                             style: TextStyle(
-                              color: Colors.grey[200],
+                              color: Theme.of(c).brightness == Brightness.light
+                                  ? Colors.grey.shade800
+                                  : Colors.grey[200],
                             ),
                           ),
                           activeColor: bgColor.color,

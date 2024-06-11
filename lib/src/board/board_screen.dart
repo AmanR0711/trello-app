@@ -1,7 +1,9 @@
 import 'package:app/src/dashboard/model/trello_board.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../common/ui/trello_message_widget.dart';
 import '../dashboard/cubit/dashboard_cubit.dart';
 import 'ui/trello_board_list_view.dart';
 
@@ -18,12 +20,13 @@ class BoardScreen extends StatefulWidget {
 }
 
 class _BoardScreenState extends State<BoardScreen> {
-
   late PageController _boardPageViewController;
-  
+  late GlobalKey<FormState> _addListKey;
+
   @override
   void initState() {
     super.initState();
+    _addListKey = GlobalKey<FormState>();
     _boardPageViewController = PageController(
       initialPage: 0,
       keepPage: true,
@@ -55,11 +58,25 @@ class _BoardScreenState extends State<BoardScreen> {
             );
           } else {
             return Scaffold(
+              backgroundColor: snapshot.data!.bgColor.color,
               appBar: AppBar(
+                backgroundColor: Theme.of(context).primaryColor,
                 title: Text(
                   snapshot.data!.name,
                   style: const TextStyle(color: Colors.white),
                 ),
+                actions: [
+                  IconButton(
+                    onPressed: () =>
+                        context.push('/board/${widget.boardId}/list/new'),
+                    icon: const Icon(
+                      Icons.add_box_outlined,
+                      color: Colors.white,
+                    ),
+                    tooltip: "Add a new list",
+                  ),
+                  const SizedBox(width: 8.0),
+                ],
               ),
               body: _buildBody(snapshot.data!),
             );
@@ -71,6 +88,19 @@ class _BoardScreenState extends State<BoardScreen> {
   }
 
   Widget _buildBody(TrelloBoard trelloBoard) {
+    if (trelloBoard.lists.isEmpty) {
+      return const Center(
+        child: TrelloMessageWidget(
+          title: "No Lists!",
+          message: "Add a new list to get started",
+          displayWidget: Icon(
+            Icons.dashboard,
+            color: Colors.white,
+            size: 64,
+          ),
+        ),
+      );
+    }
     return Column(
       children: [
         Expanded(
@@ -79,7 +109,7 @@ class _BoardScreenState extends State<BoardScreen> {
             itemCount: trelloBoard.lists.length,
             itemBuilder: (cc, index) {
               final list = trelloBoard.lists[index];
-              return TrelloBoardListView(list.tasks);
+              return TrelloBoardListView(list);
             },
           ),
         ),

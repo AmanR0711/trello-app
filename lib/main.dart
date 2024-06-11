@@ -10,6 +10,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
 import 'src/board/board_screen.dart';
 import 'src/board/ui/create_board_form.dart';
+import 'src/board/ui/create_list_form.dart';
 import 'src/common/data/themes.dart';
 import 'src/common/extra/dialog_route.dart';
 import 'src/dashboard/cubit/dashboard_cubit.dart';
@@ -18,7 +19,6 @@ import 'src/dashboard/dashboard_screen.dart';
 import 'src/dashboard/service/dashboard_service.dart';
 import 'src/onboarding/bloc/onboarding_state.dart';
 import 'src/onboarding/bloc/onboarding_cubit.dart';
-import 'src/onboarding/model/theme_type.dart';
 import 'src/onboarding/model/trello_user.dart';
 import 'src/onboarding/onboarding_screen.dart';
 import 'src/onboarding/service/onboarding_service.dart';
@@ -46,6 +46,7 @@ void main() async {
         requestBody: true,
       ),
     );
+
   runApp(
     MultiRepositoryProvider(
       providers: [
@@ -103,24 +104,22 @@ class MyApp extends StatelessWidget {
             child: const Home(),
           ),
         ),
-        routes: [
-          GoRoute(
-            path: 'profile',
-            pageBuilder: (_, s) => DialogPage(
-              builder: (__) => MultiBlocProvider(
-                providers: [
-                  BlocProvider(
-                    create: (c) => ProfileCubit(c.read()),
-                  ),
-                  BlocProvider(
-                    create: (c) => OnboardingCubit(c.read(), c.read()),
-                  ),
-                ],
-                child: const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/profile',
+        pageBuilder: (_, s) => DialogPage(
+          builder: (__) => MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (c) => ProfileCubit(c.read()),
               ),
-            ),
+              BlocProvider(
+                create: (c) => OnboardingCubit(c.read(), c.read()),
+              ),
+            ],
+            child: const ProfileScreen(),
           ),
-        ],
+        ),
       ),
       GoRoute(
         path: '/onboarding',
@@ -199,6 +198,27 @@ class MyApp extends StatelessWidget {
                 ),
               );
             },
+            routes: [
+              GoRoute(
+                path: 'list/new',
+                pageBuilder: (c, s) {
+                  final boardId = s.pathParameters['boardId'];
+                  if (boardId != null) {
+                    return MaterialPage(
+                      child: BlocProvider(
+                        create: (c) => DashboardCubit(
+                          c.read(),
+                          c.read(),
+                        ),
+                        child: CreateListForm(boardId),
+                      ),
+                      fullscreenDialog: true,
+                    );
+                  }
+                  return MaterialPage(child: Container());
+                },
+              ),
+            ],
           ),
         ],
       ),
@@ -207,7 +227,7 @@ class MyApp extends StatelessWidget {
       if (s.fullPath == '/board') {
         return '/';
       } else if (s.fullPath == '/dashboard' && s.extra == null) {
-        return '/onboarding';
+        return '/';
       }
       return null;
     },

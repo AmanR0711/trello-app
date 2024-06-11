@@ -16,8 +16,7 @@ class DashboardService {
   Future<List<TrelloBoard>> getBoards() async {
     try {
       final user = await onboardingService.getSession();
-      if(user == null)
-      {
+      if (user == null) {
         return [];
       }
       final res = await dio.get(
@@ -69,37 +68,68 @@ class DashboardService {
 
   Future<TrelloBoard?> getBoard(String boardId) async {
     try {
+      // Get board details
       final res = await dio.get('/boards/$boardId');
+      // If error, return null
       if (res.data['message'] != null) {
         return null;
       }
+      // Each board needs a list of tasks and lists
       res.data['lists'] = [];
       res.data['tasks'] = [];
+      List<TrelloBoardList> listsObj = [];
+      List<TrelloBoardTask> tasksObj = [];
+
+      // Retrieve lists for a boardId
       final listRes = await dio.get('/lists/$boardId');
-      List<TrelloBoardList> lists = [];
-      List<TrelloBoardTask> tasks = [];
+      // Retrieve tasks for a give list
       for (final list in listRes.data) {
         list['tasks'] = [];
-        list['scopes'] = [];
-        lists.add(TrelloBoardList.fromJson(list));
-        final task = await dio.get(
-          '/tasks/$boardId?listId=${list['id']}',
+        list['listScopes'] = [];
+        listsObj.add(TrelloBoardList.fromJson(list));
+        final tasks = await dio.get(
+          '/tasks/$boardId/all?listId=${list['id']}',
         );
-        task.data['listId'] = list['id'];
-        tasks.add(TrelloBoardTask.fromJson(task.data));
+        for (final task in tasks.data) {
+          task['listId'] = list['id'];
+          list['tasks'].add(task);
+        }
+        tasksObj.addAll(List<Map<String, dynamic>>.from(tasks.data)
+            .map(
+              (task) => TrelloBoardTask.fromJson(task),
+            )
+            .toList());
       }
       final board = TrelloBoard.fromJson(res.data);
-      board.lists.addAll(lists);
-      for (final list in board.lists) {
-        final listTasks =
-            tasks.where((task) => task.listId == list.id).toList();
-        print("listTasks: $listTasks");
-        list.tasks.addAll(listTasks);
-      }
-      board.lists.addAll(lists);
+      board.lists.addAll(listsObj);
       return board;
-    } catch (e) {
+    } catch (e, st) {
+      print("getBoard: $e");
+      print(st);
       throw Exception(e.toString());
+    }
+  }
+
+  Future<void> createList(
+    String boardId,
+    String name,
+    String description,
+  ) async {
+    try {
+      final user = await onboardingService.getSession();
+      if (user != null) {
+        await dio.post(
+          '/lists/$boardId/create',
+          data: {
+            'name': name,
+            'description': description,
+            'boardId': boardId,
+            'username': user.username,
+          },
+        );
+      }
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message']);
     }
   }
 }

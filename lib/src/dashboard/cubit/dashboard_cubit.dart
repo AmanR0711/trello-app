@@ -22,6 +22,7 @@ class DashboardCubit extends Cubit<DashboardState> {
       final boards = await dashboardService.getBoards();
       emit(DashboardLoaded(user!, boards));
     } catch (e) {
+      print("dashboard cubit $e");
       emit(DashboardError(e.toString()));
     }
   }
@@ -54,10 +55,22 @@ class DashboardCubit extends Cubit<DashboardState> {
     try {
       final board = await dashboardService.getBoard(boardId);
       return board;
-    } catch (e, st) {
-      print("cubit getBoard:" + e.toString());
-      print(st);
+    } catch (e) {
       return null;
+    }
+  }
+
+  Future<void> createList({
+    required String boardId,
+    required String name,
+    required String description,
+  }) async {
+    try {
+      emit(DashboardLoading());
+      await dashboardService.createList(boardId, name, description);
+      getBoards();
+    } catch (e) {
+      emit(DashboardError(e.toString()));
     }
   }
 }
